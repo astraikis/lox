@@ -41,7 +41,7 @@ public class Lox {
         BufferedReader reader = new BufferedReader(input);
 
         for (;;) {
-            System.out.println("> ");
+            System.out.print("> ");
             String line = reader.readLine();
             if (line == null) break;
             run(line);
@@ -78,7 +78,7 @@ public class Lox {
      * @param message Messaged to be printed.
      */
     private static void report(int line, String where, String message) {
-        System.err.println("[line " + line + "] Error " + where + ": " + message);
+        System.err.println("[line " + line + "] Error" + where + ": " + message);
         hadError = true;
     }
 }
