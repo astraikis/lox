@@ -5,11 +5,22 @@ import static lox.TokenType.*;
 import java.util.List;
 
 public class Parser {
+    private static class ParseError extends RuntimeException {
+    };
+
     private final List<Token> tokens;
     private int current = 0;
 
     Parser(List<Token> tokens) {
         this.tokens = tokens;
+    }
+
+    Expr parse() {
+        try {
+            return expression();
+        } catch (ParseError error) {
+            return null;
+        }
     }
 
     private Expr expression() {
@@ -82,6 +93,8 @@ public class Parser {
             consume(RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+
+        throw error(peek(), "Expect expression");
     }
 
     /**
@@ -101,8 +114,18 @@ public class Parser {
         return false;
     }
 
+    /**
+     * If current token matches type, consume, otherwise
+     * throw an error.
+     * 
+     * @param type    Token type.
+     * @param message Message to report if the current token doesn't match type.
+     * @return Current token if type matches.
+     */
     private Token consume(TokenType type, String message) {
-        return advance();
+        if (check(type))
+            return advance();
+        throw error(peek(), message);
     }
 
     /**
@@ -154,5 +177,33 @@ public class Parser {
      */
     private Token previous() {
         return tokens.get(current - 1);
+    }
+
+    private ParseError error(Token token, String message) {
+        Lox.error(token, message);
+        return new ParseError();
+    }
+
+    private void synchronization() {
+        advance();
+
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON)
+                return;
+
+            switch (peek().type) {
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            advance();
+        }
     }
 }
